@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// init() runs before main(), initializing environment variables and other setup
+// init() runs before main(), initializing environment variables and database connection
 func init() {
 	initializers.LoadEnvVariables() // Load environment variables from the .env file or system
 	initializers.ConnectToDatabase() // Uncomment if you need database connection initialization

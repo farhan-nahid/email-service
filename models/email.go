@@ -123,3 +123,4 @@ func ValidateWebsite(fl validator.FieldLevel) bool {
 	}
 	return website.IsValid()
 }
+
