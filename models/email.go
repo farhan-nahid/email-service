@@ -103,7 +103,7 @@ type Email struct {
 	Sender      EmailAddress `json:"sender" validate:"required,email_address"`
 	Recipient   EmailAddress `json:"receiver" validate:"required,email_address"`
 	Subject     string       `json:"subject" validate:"required"`
-	Status      Status       `json:"status" validate:"required,status"`
+	Status      Status       `json:"status" validate:"status"`
 	Source      Source       `json:"source" validate:"required,source"`
 	Website     Website      `json:"website" validate:"required,website"`
 	Payload     string       `json:"payload" validate:"required"`

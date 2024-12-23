@@ -7,6 +7,7 @@ import (
 	"github.com/farhan-nahid/email-service/initializers"
 	"github.com/farhan-nahid/email-service/models"
 	"github.com/farhan-nahid/email-service/utils/response"
+	"github.com/farhan-nahid/email-service/utils/sendEmail"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
@@ -43,10 +44,31 @@ func CreateEmail(c *gin.Context) {
 		Sender:      emailData.Sender,
 		Recipient:   emailData.Recipient,
 		Subject:     emailData.Subject,
-		Status:      emailData.Status,
 		Source:      emailData.Source,
 		Website:     emailData.Website,
 		Payload:     emailData.Payload,
+		Status:      "SENT",
+	}
+
+	// Send Email
+	 err, _:= sendEmail.SendEmail(sendEmail.Data{
+		Name: "Farhan",
+		Sender: string(emailData.Sender),
+		Receiver: string(emailData.Recipient),
+		Subject: emailData.Subject,
+	})
+
+	
+	if err !=  nil{
+		newEmail.Status = "FAILED"
+		// Save the email to the database
+		if err := initializers.DB.Create(&newEmail).Error; err != nil {
+			// If an error occurs while saving the email, return an error response
+			response.WriteError(c, http.StatusInternalServerError, err)
+			return
+		}
+		response.WriteError(c, http.StatusInternalServerError, err)
+		return
 	}
 
 	// Save the email to the database
