@@ -8,16 +8,23 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-
-func WriteJSON(c *gin.Context, status int, data interface{})  {
+// WriteJSON writes a JSON response with the given status code, data, and message
+func WriteJSON(c *gin.Context, status int, data interface{}, message ...string) {
 	c.JSON(status, gin.H{
+		"data":    data,
 		"success": true,
-		"message": "Success",
-		"data": data,
+		"message": func() string {
+			if len(message) > 0 && message[0] != "" {
+				return message[0]
+			}
+			return "success"
+		}(),
 	})
+	c.Abort()
 }
 
 
+// WriteError writes an error response with the given status code and error message
 func WriteError(c *gin.Context, status int, err error) {
 	c.JSON(status, gin.H{
 		"success": false,
@@ -25,9 +32,10 @@ func WriteError(c *gin.Context, status int, err error) {
 		"error": err.Error(),
 	})
 	c.Abort()
-	
 }
 
+
+// ValidatorError writes a validation error response with the given status code and validation errors
 func ValidatorError(c *gin.Context, status int, errors validator.ValidationErrors) {
 	var errorMessage []string
 
@@ -36,7 +44,7 @@ func ValidatorError(c *gin.Context, status int, errors validator.ValidationError
 		switch err.ActualTag() {
 		case "required":
 			errorMessage = append(errorMessage, err.Field() + " is required")
-		case "email":
+		case "email_address":
 			errorMessage = append(errorMessage, err.Field() + " is not a valid email")
 		case "status":
 			errorMessage = append(errorMessage, err.Field() + " is not a valid status")
@@ -44,6 +52,8 @@ func ValidatorError(c *gin.Context, status int, errors validator.ValidationError
 			errorMessage = append(errorMessage, err.Field() + " is not a valid source")
 		case "website":
 			errorMessage = append(errorMessage, err.Field() + " is not a valid website")
+		case "uuid":
+			errorMessage = append(errorMessage, err.Field() + " is not a valid UUID")
 		default:
 			errorMessage = append(errorMessage, err.Field() + " is not valid")
 		}

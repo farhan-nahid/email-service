@@ -13,6 +13,13 @@ import (
 	"gorm.io/gorm"
 )
 
+// checks the given string is a valid UUID
+func isValidUUID(str string) bool {
+	// Attempt to parse the string as a UUID
+	_, err := uuid.Parse(str)
+	return err == nil
+}
+
 func CreateEmail(c *gin.Context) {
 	// Retrieve the validated email data from the context
 	validatedData, exists := c.Get("validatedData")
@@ -49,8 +56,8 @@ func CreateEmail(c *gin.Context) {
 		return
 	}
 
-	// Return the success response with the newly created email data
-	c.JSON(http.StatusCreated, gin.H{"success": true, "data": newEmail})
+	// Return a success response
+	response.WriteJSON(c, http.StatusCreated, newEmail, "Email created successfully")
 }
 
 
@@ -70,14 +77,43 @@ func GetEmails(c *gin.Context) {
 		return
 	}
 
-	// Return emails in the response
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": emails})
+	// Return a success response
+	response.WriteJSON(c, http.StatusOK, emails, "Emails retrieved successfully")
+}
+
+
+func GetDeletedEmails(c *gin.Context) {
+	var emails []models.Email
+
+	// Retrieve deleted emails from the database
+	if err := initializers.DB.Unscoped().Where("deleted_at IS NOT NULL").Find(&emails).Error; err != nil {
+		// If there's an error querying the database, return a 500 response
+		response.WriteError(c, http.StatusInternalServerError, nil)
+		return
+	}
+
+	// If no emails are found, return a 404 response
+	if len(emails) == 0 {
+		response.WriteError(c, http.StatusNotFound, nil)
+		return
+	}
+
+	// Return a success response
+	response.WriteJSON(c, http.StatusOK, emails, "Deleted emails retrieved successfully")
 }
 
 
 func GetEmailByUUID(c *gin.Context) {
+	// Validate the UUID	
+	if !isValidUUID(c.Param("uuid")) {
+		response.WriteError(c, http.StatusBadRequest, errors.New("invalid UUID format in request URL"))
+		return
+	}
+
 	// Declare a variable of type Email to hold the result
 	var email models.Email
+
+	
 	
 	// Get the email by UUID from the database
 	if err := initializers.DB.Where("uuid = ?", c.Param("uuid")).First(&email).Error; err != nil {
@@ -91,12 +127,18 @@ func GetEmailByUUID(c *gin.Context) {
 		return
 	}
 
-	// Return the email data in the response
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": email})
+	// Return a success response
+	response.WriteJSON(c, http.StatusOK, email, "Email retrieved successfully")
 }
 
 
 func UpdateEmailByUUID(c *gin.Context) {
+	// Validate the UUID	
+	if !isValidUUID(c.Param("uuid")) {
+		response.WriteError(c, http.StatusBadRequest, errors.New("invalid UUID format in request URL"))
+		return
+	}
+
 	// Initialize validator
 	var validate = validator.New()
 	models.RegisterCustomValidations(validate) // Register custom validations
@@ -119,15 +161,29 @@ func UpdateEmailByUUID(c *gin.Context) {
 	if updateData.CompanyUUID != uuid.Nil {
 		email.CompanyUUID = updateData.CompanyUUID
 	}
+
 	if updateData.Sender != "" {
+		// Validate the Sender email address
+		if !updateData.Sender.IsValid() {
+			response.WriteError(c, http.StatusBadRequest, errors.New("invalid sender email address"))
+			return
+		}
 		email.Sender = updateData.Sender
 	}
+
 	if updateData.Recipient != "" {
+		// Validate the Recipient email address
+		if !updateData.Recipient.IsValid() {
+			response.WriteError(c, http.StatusBadRequest, errors.New("invalid recipient email address"))
+			return
+		}
 		email.Recipient = updateData.Recipient
 	}
+
 	if updateData.Subject != "" {
 		email.Subject = updateData.Subject
 	}
+
 	if updateData.Status != "" {
 		// Validate the status
 		if !updateData.Status.IsValid() {
@@ -136,6 +192,7 @@ func UpdateEmailByUUID(c *gin.Context) {
 		}
 		email.Status = updateData.Status
 	}
+
 	if updateData.Source != "" {
 		// Validate the source
 		if !updateData.Source.IsValid() {
@@ -144,6 +201,7 @@ func UpdateEmailByUUID(c *gin.Context) {
 		}
 		email.Source = updateData.Source
 	}
+
 	if updateData.Website != "" {
 		// Validate the website
 		if !updateData.Website.IsValid() {
@@ -152,6 +210,7 @@ func UpdateEmailByUUID(c *gin.Context) {
 		}
 		email.Website = updateData.Website
 	}
+
 	if updateData.Payload != "" {
 		email.Payload = updateData.Payload
 	}
@@ -162,34 +221,47 @@ func UpdateEmailByUUID(c *gin.Context) {
 		return
 	}
 
-	// Return the success response with the updated email data
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": email})
+	// Return a success response
+	response.WriteJSON(c, http.StatusOK, email, "Email updated successfully")
 }
 
 
 func DeleteEmailByUUID(c *gin.Context) {
+	// Validate the UUID format
+	if !isValidUUID(c.Param("uuid")) {
+		response.WriteError(c, http.StatusBadRequest, errors.New("invalid UUID format in request URL"))
+		return
+	}
+
 	// Declare a variable of type Email to hold the result
 	var email models.Email
 
-	// Get the email by UUID from the database
+	// Attempt to find the email by UUID in the database
 	if err := initializers.DB.Where("uuid = ?", c.Param("uuid")).First(&email).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// If the email is not found, return a 404 response
-			response.WriteError(c, http.StatusNotFound, nil)
+			response.WriteError(c, http.StatusNotFound, errors.New("email not found"))
 		} else {
-			// Handle any other error
-			response.WriteError(c, http.StatusInternalServerError, nil)
+			// Handle other database errors
+			response.WriteError(c, http.StatusInternalServerError, err)
 		}
+		return
+	}
+
+	// Check if the email is already deleted or inactive, assuming you have a 'deleted' field or similar
+	// If it is already deleted, return an error response
+	if email.DeletedAt.Valid {
+		response.WriteError(c, http.StatusBadRequest, errors.New("email already deleted"))
 		return
 	}
 
 	// Delete the email from the database
 	if err := initializers.DB.Delete(&email).Error; err != nil {
-		// If an error occurs while deleting the email, return an error response
+		// If an error occurs while deleting, return an error response
 		response.WriteError(c, http.StatusInternalServerError, err)
 		return
 	}
 
-	// Return a success response
-	c.JSON(http.StatusOK, gin.H{"success": true})
+	// Return a success response after deletion
+	response.WriteJSON(c, http.StatusOK, nil, "Email deleted successfully")
 }

@@ -12,6 +12,7 @@ func EmailRoute(router *gin.Engine) {
 	{
 		v1.POST("/email", middleware.BindAndValidate[models.Email](), controllers.CreateEmail)
 		v1.GET("/email", controllers.GetEmails)
+		v1.GET("/email/deleted", controllers.GetDeletedEmails)
 		v1.GET("/email/:uuid", controllers.GetEmailByUUID)
 		v1.PATCH("/email/:uuid", controllers.UpdateEmailByUUID)
 		v1.DELETE("/email/:uuid", controllers.DeleteEmailByUUID)
