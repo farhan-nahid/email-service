@@ -5,8 +5,6 @@ import (
 	"log"
 	"os"
 
-	// "github.com/farhan-nahid/email-service/initializers"
-	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -24,12 +22,6 @@ type DatabaseConfiguration struct {
 }
 
 func ConnectToDatabase() {
-	err := godotenv.Load()
-	
-	if err != nil {
-	  log.Fatal("Error loading .env file")
-	}
-
 	dbUser 	   := os.Getenv("DB_USER") 
 	dbPassword := os.Getenv("DB_PASS")
 	dbHost 	   := os.Getenv("DB_HOST")
