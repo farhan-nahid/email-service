@@ -71,9 +71,8 @@ const (
 
 func (s Source) IsValid() bool {
 	switch s {
-		case TrialCreated, TrialExpired, SubscriptionCreated,
-		SubscriptionRenewed, SubscriptionCancelled,
-		AccountCreation, ResetPassword, ChangeEmail, DeleteAccount:
+		case TrialCreated, TrialExpired, SubscriptionCreated, SubscriptionRenewed, 
+		SubscriptionCancelled, AccountCreation, ResetPassword, ChangeEmail, DeleteAccount:
 		return true
 	}
 	return false
