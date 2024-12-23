@@ -28,7 +28,7 @@ func main() {
 
 	// Define the HTTP server configuration
 	server := &http.Server{
-		Addr:   ":8080", // Server will listen on port 8080
+		Addr:   ":" + os.Getenv("PORT"), // Server will listen on port 8080
 		Handler: router,  // Use Gin router as the handler
 	}
 

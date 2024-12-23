@@ -3,6 +3,7 @@ package initializers
 import (
 	"fmt"
 	"log"
+	"os"
 
 	// "github.com/farhan-nahid/email-service/initializers"
 	"github.com/joho/godotenv"
@@ -29,17 +30,11 @@ func ConnectToDatabase() {
 	  log.Fatal("Error loading .env file")
 	}
 
-	// dbUser 	   := os.Getenv("postgres") 
-	// dbPassword := os.Getenv("DB_PASS")
-	// dbHost 	   := os.Getenv("DB_HOST")
-	// DBName     := os.Getenv("DB_NAME")
-	// dbPort     := os.Getenv("DB_PORT")
-
-	dbUser := "postgres"
-	dbPassword := "postgres"
-	dbHost := "localhost"
-	DBName := "postgres"
-	dbPort := "5432"
+	dbUser 	   := os.Getenv("DB_USER") 
+	dbPassword := os.Getenv("DB_PASS")
+	dbHost 	   := os.Getenv("DB_HOST")
+	DBName     := os.Getenv("DB_NAME")
+	dbPort     := os.Getenv("DB_PORT")
 
 	log.Println("DB_USER: ", "postgres", "DB_PASS: ", "postgres", "DB_HOST: ", "localhost", "DB_NAME: ", "postgres", "DB_PORT: ", "5432")
 
