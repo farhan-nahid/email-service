@@ -1,0 +1,46 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Output directories
+bin/
+build/
+
+# Test binary
+*.test
+
+# Temporary files
+*.log
+*.out
+*.tmp
+
+# Dependency directories (if using vendoring)
+vendor/
+
+# Go modules (optional if you commit these files)
+go.sum
+
+# IDE or Editor-specific files
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# System-specific files
+Thumbs.db
+desktop.ini
+
+# Specific OS-related
+# macOS
+**/.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# env
+.env
