@@ -1,18 +1,22 @@
 package models
 
 import (
-	"errors"
-
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
+
+// Enum interface with the IsValid method
+type Enum interface {
+    IsValid() bool
+}
 
 // Enum definitions for Status
 type Status string
 
 const (
-	Sent     Status = "SENT"
-	Failed   Status = "FAILED"
+	Sent   Status = "SENT"
+	Failed Status = "FAILED"
 )
 
 func (s Status) IsValid() bool {
@@ -27,20 +31,22 @@ func (s Status) IsValid() bool {
 type Source string
 
 const (
-	TrialCreate    	    Source = "TRIAL_CREATED"
-	TrialExpire    	    Source = "TRIAL_EXPIRED"
-	SubscriptionCreate  Source = "SUBSCRIPTION_CREATED"
-	SubscriptionRenew   Source = "SUBSCRIPTION_RENEWED"
-	SubscriptionCancel  Source = "SUBSCRIPTION_CANCELLED"
-	AccountCreation 	Source = "ACCOUNT_CREATION"
-	ResetPassword   	Source = "RESET_PASSWORD"
-	ChangeEmail     	Source = "CHANGE_EMAIL"
-	DeleteAccount   	Source = "DELETE_ACCOUNT"
+	TrialCreated       		Source = "TRIAL_CREATED"
+	TrialExpired       		Source = "TRIAL_EXPIRED"
+	SubscriptionCreated 	Source = "SUBSCRIPTION_CREATED"
+	SubscriptionRenewed 	Source = "SUBSCRIPTION_RENEWED"
+	SubscriptionCancelled 	Source = "SUBSCRIPTION_CANCELLED"
+	AccountCreation    		Source = "ACCOUNT_CREATION"
+	ResetPassword      		Source = "RESET_PASSWORD"
+	ChangeEmail        		Source = "CHANGE_EMAIL"
+	DeleteAccount      		Source = "DELETE_ACCOUNT"
 )
 
 func (s Source) IsValid() bool {
 	switch s {
-		case TrialCreate, TrialExpire, SubscriptionCreate, SubscriptionCancel, SubscriptionRenew, AccountCreation, ResetPassword, ChangeEmail, DeleteAccount:
+		case TrialCreated, TrialExpired, SubscriptionCreated,
+		SubscriptionRenewed, SubscriptionCancelled,
+		AccountCreation, ResetPassword, ChangeEmail, DeleteAccount:
 		return true
 	}
 	return false
@@ -63,27 +69,57 @@ func (w Website) IsValid() bool {
 	return false
 }
 
-
 type Email struct {
 	gorm.Model
-	UUID     	uuid.UUID `json:"uuid" gorm:"type:uuid;default:uuid_generate_v4();primaryKey;unique;"`
-	CompanyUUID uuid.UUID `json:"company_uuid" gorm:"index"`
-	Sender   	string    `json:"sender"`
-	Recipient 	string    `json:"receiver"`
-	Subject  	string    `json:"subject"`
-	Status   	Status    `json:"status"`   // SENT, FAILED
-	Source   	Source    `json:"source"`   // TRIAL_CREATED, TRIAL_EXPIRED, SUBSCRIPTION_CREATED, SUBSCRIPTION_RENEWED, SUBSCRIPTION_CANCELLED, ACCOUNT_CREATION, RESET_PASSWORD, CHANGE_EMAIL, DELETE_ACCOUNT
-	Website  	Website   `json:"website"` 	// IK, MYE, AK
-	Payload  	string    `json:"payload"`
+	UUID        uuid.UUID `json:"uuid" gorm:"primaryKey;unique;"`
+	CompanyUUID uuid.UUID `json:"company_uuid" gorm:"index" validate:"required"`
+	Sender      string    `json:"sender" validate:"required,email"`
+	Recipient   string    `json:"receiver" validate:"required,email"`
+	Subject     string    `json:"subject" validate:"required"`
+	Status      Status    `json:"status" validate:"required,status"`  // Custom validation for Status
+	Source      Source    `json:"source" validate:"required,source"`  // Custom validation for Source
+	Website     Website   `json:"website" validate:"required,website"` // Custom validation for Website
+	Payload     string    `json:"payload" validate:"required"`
 }
 
-// BeforeSave hook to validate enums
-func (e *Email) BeforeSave(tx *gorm.DB) (err error) {
-	if !e.Source.IsValid() {
-		return errors.New("invalid source value")
-	}
-	if !e.Website.IsValid() {
-		return errors.New("invalid website value")
+func (e *Email) BeforeCreate(tx *gorm.DB) (err error) {
+	// Automatically set the UUID before creating the record
+	if e.UUID == uuid.Nil {
+		e.UUID = uuid.New()
 	}
 	return nil
+}
+
+// Register custom validations
+func RegisterCustomValidations(v *validator.Validate) {
+	v.RegisterValidation("status", ValidateStatus)
+	v.RegisterValidation("source", ValidateSource)
+	v.RegisterValidation("website", ValidateWebsite)
+}
+
+// ValidateStatus validates the status field to ensure it's one of the valid enum values
+func ValidateStatus(fl validator.FieldLevel) bool {
+	status, ok := fl.Field().Interface().(Status)
+	if !ok {
+		return false
+	}
+	return status.IsValid()
+}
+
+// ValidateSource validates the source field to ensure it's one of the valid enum values
+func ValidateSource(fl validator.FieldLevel) bool {
+	source, ok := fl.Field().Interface().(Source)
+	if !ok {
+		return false
+	}
+	return source.IsValid()
+}
+
+// ValidateWebsite validates the website field to ensure it's one of the valid enum values
+func ValidateWebsite(fl validator.FieldLevel) bool {
+	website, ok := fl.Field().Interface().(Website)
+	if !ok {
+		return false
+	}
+	return website.IsValid()
 }

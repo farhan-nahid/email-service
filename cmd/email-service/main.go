@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/farhan-nahid/email-service/controllers"
 	"github.com/farhan-nahid/email-service/initializers"
+	"github.com/farhan-nahid/email-service/routes"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,7 +24,8 @@ func main() {
 	router := gin.Default()
 
 	// Health check endpoint to verify server status
-	router.GET("/health-check", controllers.HealthCheck)
+	router.GET("/health-check", func(c *gin.Context) {c.JSON(200, gin.H{ "message": "Email Service is up and running",})})
+	routes.EmailRoute(router) // Register email routes
 
 	// Define the HTTP server configuration
 	server := &http.Server{

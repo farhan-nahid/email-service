@@ -11,5 +11,9 @@ func init() {
 }
 
 func main() {
-	initializers.DB.AutoMigrate(&models.Email{})
+	err:= initializers.DB.AutoMigrate(&models.Email{})
+
+	if err != nil {
+		panic(err)
+	}
 }
