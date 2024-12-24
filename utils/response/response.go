@@ -8,24 +8,19 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-// WriteJSON writes a JSON response with the given status code, data, and message
-func WriteJSON(c *gin.Context, status int, data interface{}, message ...string) {
+// Success writes a JSON response with the given status code, data, and message
+func Success(c *gin.Context, status int, data interface{}, message string) {
 	c.JSON(status, gin.H{
 		"data":    data,
 		"success": true,
-		"message": func() string {
-			if len(message) > 0 && message[0] != "" {
-				return message[0]
-			}
-			return "success"
-		}(),
+		"message": message,
 	})
 	c.Abort()
 }
 
 
-// WriteError writes an error response with the given status code and error message
-func WriteError(c *gin.Context, status int, err error) {
+// Error writes an error response with the given status code and error message
+func Error(c *gin.Context, status int, err error) {
 	c.JSON(status, gin.H{
 		"success": false,
 		"message": "Error",

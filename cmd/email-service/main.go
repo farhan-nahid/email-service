@@ -10,6 +10,7 @@ import (
 
 	"github.com/farhan-nahid/email-service/initializers"
 	"github.com/farhan-nahid/email-service/routes"
+	"github.com/farhan-nahid/email-service/utils/response"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,8 +24,7 @@ func main() {
 	// Create a new Gin router instance
 	router := gin.Default()
 
-	// Health check endpoint to verify server status
-	router.GET("/health-check", func(c *gin.Context) {c.JSON(200, gin.H{ "message": "Email Service is up and running",})})
+	router.GET("/health-check", func(c *gin.Context) {response.Success(c, http.StatusOK, nil, "Service is up and running")})
 	routes.EmailRoute(router) // Register email routes
 
 	// Define the HTTP server configuration

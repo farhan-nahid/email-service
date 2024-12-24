@@ -12,15 +12,6 @@ import (
 
 var DB *gorm.DB
 
-type DatabaseConfiguration struct {
-	DBName   string
-	Username string
-	Password string
-	Host     string
-	Port     string
-	LogMode  bool
-}
-
 func ConnectToDatabase() {
 	dbUser 	   := os.Getenv("DB_USER") 
 	dbPassword := os.Getenv("DB_PASS")
