@@ -14,16 +14,15 @@ type Enum interface {
 	IsValid() bool
 }
 
-// Custom EmailAddress type
+// ------------------- EmailAddress Type ------------------- //
+
 type EmailAddress string
 
-// IsValid checks if the EmailAddress is valid
 func (e EmailAddress) IsValid() bool {
 	_, err := mail.ParseAddress(string(e))
 	return err == nil
 }
 
-// Scan implements the sql.Scanner interface for database compatibility
 func (e *EmailAddress) Scan(value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
@@ -33,12 +32,12 @@ func (e *EmailAddress) Scan(value interface{}) error {
 	return nil
 }
 
-// Value implements the driver.Valuer interface for database compatibility
 func (e EmailAddress) Value() (interface{}, error) {
 	return string(e), nil
 }
 
-// Enum definitions for Status
+// ------------------- Enums ------------------- //
+
 type Status string
 
 const (
@@ -48,13 +47,13 @@ const (
 
 func (s Status) IsValid() bool {
 	switch s {
-		case Sent, Failed:
+	case Sent, Failed:
 		return true
 	}
 	return false
 }
 
-// Enum definitions for Source
+
 type Source string
 
 const (
@@ -71,14 +70,14 @@ const (
 
 func (s Source) IsValid() bool {
 	switch s {
-		case TrialCreated, TrialExpired, SubscriptionCreated, SubscriptionRenewed, 
+	case TrialCreated, TrialExpired, SubscriptionCreated, SubscriptionRenewed, 
 		SubscriptionCancelled, AccountCreation, ResetPassword, ChangeEmail, DeleteAccount:
 		return true
 	}
 	return false
 }
 
-// Enum definitions for Website
+
 type Website string
 
 const (
@@ -89,18 +88,19 @@ const (
 
 func (w Website) IsValid() bool {
 	switch w {
-		case IK, MYE, AK:
+	case IK, MYE, AK:
 		return true
 	}
 	return false
 }
 
-// Email model
+// ------------------- Email Model ------------------- //
+
 type Email struct {
 	gorm.Model
 	UUID        uuid.UUID    `json:"uuid" gorm:"primaryKey;unique;"`
 	CompanyUUID uuid.UUID    `json:"company_uuid" gorm:"index" validate:"required,uuid"`
-	Name 	    string       `json:"name" validate:"required"`
+	Name        string       `json:"name" validate:"required"`
 	Sender      EmailAddress `json:"sender" validate:"required,email_address"`
 	Recipient   EmailAddress `json:"receiver" validate:"required,email_address"`
 	Subject     string       `json:"subject" validate:"required"`
@@ -124,16 +124,12 @@ func (e *Email) IsValid() bool {
 		e.Recipient.IsValid() &&
 		e.Status.IsValid() &&
 		e.Source.IsValid() &&
-		e.Website.IsValid() &&
-		e.UUIDIsValid()
+		e.Website.IsValid() 
 }
 
-// UUIDIsValid validates UUID fields
-func (e *Email) UUIDIsValid() bool {
-	return e.UUID != uuid.Nil && e.CompanyUUID != uuid.Nil
-}
 
-// Register custom validations
+// ------------------- Custom Validations ------------------- //
+
 func RegisterCustomValidations(v *validator.Validate) {
 	v.RegisterValidation("status", ValidateStatus)
 	v.RegisterValidation("source", ValidateSource)
@@ -142,31 +138,26 @@ func RegisterCustomValidations(v *validator.Validate) {
 	v.RegisterValidation("email_address", ValidateEmailAddress)
 }
 
-// ValidateStatus validates the status field
 func ValidateStatus(fl validator.FieldLevel) bool {
 	status, ok := fl.Field().Interface().(Status)
 	return ok && status.IsValid()
 }
 
-// ValidateSource validates the source field
 func ValidateSource(fl validator.FieldLevel) bool {
 	source, ok := fl.Field().Interface().(Source)
 	return ok && source.IsValid()
 }
 
-// ValidateWebsite validates the website field
 func ValidateWebsite(fl validator.FieldLevel) bool {
 	website, ok := fl.Field().Interface().(Website)
 	return ok && website.IsValid()
 }
 
-// ValidateUUID validates a UUID
 func ValidateUUID(fl validator.FieldLevel) bool {
 	id, ok := fl.Field().Interface().(uuid.UUID)
 	return ok && id != uuid.Nil
 }
 
-// ValidateEmailAddress validates the EmailAddress type
 func ValidateEmailAddress(fl validator.FieldLevel) bool {
 	email, ok := fl.Field().Interface().(EmailAddress)
 	return ok && email.IsValid()

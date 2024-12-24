@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/farhan-nahid/email-service/initializers"
@@ -24,19 +23,14 @@ func isValidUUID(str string) bool {
 }
 
 func CreateEmail(c *gin.Context) {
-	// Retrieve the validated email data from the context
 	validatedData, exists := c.Get("validatedData")
 	if !exists {
-		// If no validated data exists in the context, return an error response
 		response.Error(c, http.StatusBadRequest, errors.New("data not found in context"))
 		return
 	}
 
-
-	// Type assert validatedData into the Email model
 	emailData, ok := validatedData.(models.Email)
 	if !ok {
-		// If the type assertion fails, return an error response
 		response.Error(c, http.StatusBadRequest, errors.New("invalid data format"))
 		return
 	}
@@ -48,8 +42,6 @@ func CreateEmail(c *gin.Context) {
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, errors.New("invalid payload format"))
 	}
-
-	fmt.Println("Payload: ", payload)
 
 	// Create a new email instance using the validated data
 	newEmail := models.Email{
@@ -64,10 +56,21 @@ func CreateEmail(c *gin.Context) {
 		Status:      "SENT",
 	}
 
+	var sender string;
+
+	if emailData.Website == "AK" {
+		sender = "Attendance Keeper <" + string(emailData.Sender) + ">"
+	} else if emailData.Website == "MYE" {
+		sender = "Manage Your Ecommerce <" + string(emailData.Sender) + ">"
+	} else {
+		sender = "Inventory Keeper <" + string(emailData.Sender) + ">"
+	}
+
+
 	// Send Email
 	err = sendEmail.SendEmail(sendEmail.Data{
 		Name: emailData.Name,
-		Sender: string(emailData.Sender),
+		Sender: sender,
 		Receiver: string(emailData.Recipient),
 		Subject: emailData.Subject,
 		Payload: payload,
@@ -289,7 +292,6 @@ func DeleteEmailByUUID(c *gin.Context) {
 		return
 	}
 
-	// Check if the email is already deleted or inactive, assuming you have a 'deleted' field or similar
 	// If it is already deleted, return an error response
 	if email.DeletedAt.Valid {
 		response.Error(c, http.StatusBadRequest, errors.New("email already deleted"))

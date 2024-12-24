@@ -2,7 +2,6 @@ package sendEmail
 
 import (
 	"bytes"
-	"fmt"
 	"html/template"
 	"io"
 	"log"
@@ -22,11 +21,9 @@ type Data struct {
 }
 
 func SendEmail(data Data, templatePath string) (error) {
-	var body bytes.Buffer
-
-	fmt.Println(data.Payload)
-
 	log.Println("Sending email to: ", data.Receiver)
+	
+	var body bytes.Buffer
 	wd, err := os.Getwd()
 	if err != nil {
 		return err
