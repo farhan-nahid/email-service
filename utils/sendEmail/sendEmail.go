@@ -2,6 +2,7 @@ package sendEmail
 
 import (
 	"bytes"
+	"fmt"
 	"html/template"
 	"io"
 	"log"
@@ -17,23 +18,24 @@ type Data struct {
 	Sender   string
 	Receiver string
 	Subject  string
+	Payload  interface{}
 }
 
-func SendEmail(data Data) (error) {
+func SendEmail(data Data, templatePath string) (error) {
 	var body bytes.Buffer
+
+	fmt.Println(data.Payload)
 
 	log.Println("Sending email to: ", data.Receiver)
 	wd, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
 		return err
 	}
 	
 	log.Println("Working directory: ", wd)
-	t, err := template.ParseFiles(wd + "/templates/ak/accountCreate.html")
+	t, err := template.ParseFiles(wd + templatePath)
 
 	if err != nil {
-		log.Fatal(err)
 		return err
 	}
 
@@ -46,35 +48,39 @@ func SendEmail(data Data) (error) {
 	m.SetHeader("From", data.Sender)
 	m.SetHeader("To", data.Receiver)
 	m.SetHeader("Subject", data.Subject)
-	invoiceLink := "https://pay.stripe.com/invoice/acct_1J5h2BB8gd0zVpbR/test_YWNjdF8xSjVoMkJCOGdkMHpWcGJSLF9SUDhwS0JzRGpjNFo2MHBxVGRpeUpqSGF5RzY2V0RxLDEyNDgyMDQwMw0200I47JuO2l/pdf?s=ap"
+	// invoiceLink := ""
 	// Set the email body as HTML content
 	m.SetBody("text/html", body.String())
 
-	log.Println("Attaching invoice to email")
-	// Example of downloading a file and attaching it
-	response, err := http.Get(invoiceLink)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
+	if payload, ok := data.Payload.(map[string]interface{}); ok {
+		if invoiceLink, ok := payload["invoiceLink"].(string); ok && invoiceLink != "" {
+			log.Println("Attaching invoice to email")
+			// Example of downloading a file and attaching it
+			response, err := http.Get(invoiceLink)
+			if err != nil {
+				return err
+			}
+			defer response.Body.Close()
 
-	// Create a temporary file to save the content
-	tmpFile, err := os.Create("invoice.pdf")
-	if err != nil {
-		return err
-	}
-	
-	defer tmpFile.Close()
+			// Create a temporary file to save the content
+			tmpFile, err := os.Create("invoice.pdf")
+			if err != nil {
+				return err
+			}
+			
+			defer tmpFile.Close()
 
-	// Write the content from the response to the temporary file
-	_, err = io.Copy(tmpFile, response.Body)
-	if err != nil {
-		return err
-	}
-	
+			// Write the content from the response to the temporary file
+			_, err = io.Copy(tmpFile, response.Body)
+			if err != nil {
+				return err
+			}
+			
 
-	// Attach the downloaded file to the email
-	m.Attach("invoice.pdf")
+			// Attach the downloaded file to the email
+			m.Attach("invoice.pdf")
+		}
+	}
 
 	port, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
 	if err != nil {
@@ -84,7 +90,7 @@ func SendEmail(data Data) (error) {
 
 	log.Println("Attempting to send email")
 	// Create the dialer and send the email
-	d := gomail.NewDialer(os.Getenv("SMTP_HOST"), port, os.Getenv("SMTP_USER_NAME"), os.Getenv("SMTP_PASS"))
+	d := gomail.NewDialer(os.Getenv("SMTP_HOST"), port, os.Getenv("SMTP_USER"), os.Getenv("SMTP_PASS"))
 
 	// Send the email
 	if err := d.DialAndSend(m); err != nil {

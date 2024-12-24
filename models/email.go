@@ -107,7 +107,7 @@ type Email struct {
 	Status      Status       `json:"status" validate:"status"`
 	Source      Source       `json:"source" validate:"required,source"`
 	Website     Website      `json:"website" validate:"required,website"`
-	Payload     string       `json:"payload" validate:"required"`
+	Payload     string       `json:"payload" validate:"required,json"`
 }
 
 // BeforeCreate hook to set UUID automatically
