@@ -51,8 +51,8 @@ func CreateEmail(c *gin.Context) {
 	}
 
 	// Send Email
-	 err, _:= sendEmail.SendEmail(sendEmail.Data{
-		Name: "Farhan",
+	err := sendEmail.SendEmail(sendEmail.Data{
+		Name: emailData.Name,
 		Sender: string(emailData.Sender),
 		Receiver: string(emailData.Recipient),
 		Subject: emailData.Subject,

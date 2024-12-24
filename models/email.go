@@ -100,6 +100,7 @@ type Email struct {
 	gorm.Model
 	UUID        uuid.UUID    `json:"uuid" gorm:"primaryKey;unique;"`
 	CompanyUUID uuid.UUID    `json:"company_uuid" gorm:"index" validate:"required,uuid"`
+	Name 	    string       `json:"name" validate:"required"`
 	Sender      EmailAddress `json:"sender" validate:"required,email_address"`
 	Recipient   EmailAddress `json:"receiver" validate:"required,email_address"`
 	Subject     string       `json:"subject" validate:"required"`

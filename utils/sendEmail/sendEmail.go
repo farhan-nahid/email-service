@@ -2,7 +2,6 @@ package sendEmail
 
 import (
 	"bytes"
-	"fmt"
 	"html/template"
 	"io"
 	"log"
@@ -20,24 +19,28 @@ type Data struct {
 	Subject  string
 }
 
-func SendEmail(data Data) (error, bool) {
+func SendEmail(data Data) (error) {
 	var body bytes.Buffer
+
+	log.Println("Sending email to: ", data.Receiver)
 	wd, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
+		return err
 	}
 	
+	log.Println("Working directory: ", wd)
 	t, err := template.ParseFiles(wd + "/templates/ak/accountCreate.html")
 
 	if err != nil {
-		return err, false
+		log.Fatal(err)
+		return err
 	}
-
-	fmt.Println(data.Name)
 
 	// Execute the template with the provided data
 	t.Execute(&body, struct{ Name string }{Name: data.Name})
 
+ 	log.Println("Attempting to send email body")
 	// Construct the email
 	m := gomail.NewMessage()
 	m.SetHeader("From", data.Sender)
@@ -46,17 +49,19 @@ func SendEmail(data Data) (error, bool) {
 	invoiceLink := "https://pay.stripe.com/invoice/acct_1J5h2BB8gd0zVpbR/test_YWNjdF8xSjVoMkJCOGdkMHpWcGJSLF9SUDhwS0JzRGpjNFo2MHBxVGRpeUpqSGF5RzY2V0RxLDEyNDgyMDQwMw0200I47JuO2l/pdf?s=ap"
 	// Set the email body as HTML content
 	m.SetBody("text/html", body.String())
+
+	log.Println("Attaching invoice to email")
 	// Example of downloading a file and attaching it
 	response, err := http.Get(invoiceLink)
 	if err != nil {
-		return err, false
+		return err
 	}
 	defer response.Body.Close()
 
 	// Create a temporary file to save the content
 	tmpFile, err := os.Create("invoice.pdf")
 	if err != nil {
-		return err, false
+		return err
 	}
 	
 	defer tmpFile.Close()
@@ -64,7 +69,7 @@ func SendEmail(data Data) (error, bool) {
 	// Write the content from the response to the temporary file
 	_, err = io.Copy(tmpFile, response.Body)
 	if err != nil {
-		return err, false
+		return err
 	}
 	
 
@@ -73,16 +78,18 @@ func SendEmail(data Data) (error, bool) {
 
 	port, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
 	if err != nil {
-		return err, false
+		return err
 	}
 
+
+	log.Println("Attempting to send email")
 	// Create the dialer and send the email
 	d := gomail.NewDialer(os.Getenv("SMTP_HOST"), port, os.Getenv("SMTP_USER_NAME"), os.Getenv("SMTP_PASS"))
 
 	// Send the email
 	if err := d.DialAndSend(m); err != nil {
-		return err, false
+		return err
 	}
 
-	return nil, true
+	return nil
 }
