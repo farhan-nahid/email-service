@@ -1,4 +1,4 @@
-package sendEmail
+package utils
 
 import (
 	"bytes"
