@@ -9,7 +9,7 @@ import (
 )
 
 // Success writes a JSON response with the given status code, data, and message
-func Success(c *gin.Context, status int, data interface{}, message string) {
+func SuccessResponse(c *gin.Context, status int, data interface{}, message string) {
 	c.JSON(status, gin.H{
 		"data":    data,
 		"success": true,
@@ -20,7 +20,7 @@ func Success(c *gin.Context, status int, data interface{}, message string) {
 
 
 // Error writes an error response with the given status code and error message
-func Error(c *gin.Context, status int, err error) {
+func ErrorResponse(c *gin.Context, status int, err error) {
 	c.JSON(status, gin.H{
 		"success": false,
 		"message": "Error",

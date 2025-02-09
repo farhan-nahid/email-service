@@ -162,3 +162,70 @@ func ValidateEmailAddress(fl validator.FieldLevel) bool {
 	email, ok := fl.Field().Interface().(EmailAddress)
 	return ok && email.IsValid()
 }
+
+
+
+
+
+
+// package models
+
+// import (
+// 	"github.com/google/uuid"
+// 	"gorm.io/gorm"
+// )
+
+// // ------------------- Enums ------------------- //
+
+// type Status string
+
+// const (
+// 	Sent   Status = "SENT"
+// 	Failed Status = "FAILED"
+// )
+
+// type Source string
+
+// const (
+// 	TrialCreated          Source = "TRIAL_CREATED"
+// 	TrialExpired          Source = "TRIAL_EXPIRED"
+// 	SubscriptionCreated   Source = "SUBSCRIPTION_CREATED"
+// 	SubscriptionRenewed   Source = "SUBSCRIPTION_RENEWED"
+// 	SubscriptionCancelled Source = "SUBSCRIPTION_CANCELLED"
+// 	AccountCreation       Source = "ACCOUNT_CREATION"
+// 	ResetPassword         Source = "RESET_PASSWORD"
+// 	ChangeEmail           Source = "CHANGE_EMAIL"
+// 	DeleteAccount         Source = "DELETE_ACCOUNT"
+// )
+
+// type Website string
+
+// const (
+// 	IK  Website = "IK"
+// 	MYE Website = "MYE"
+// 	AK  Website = "AK"
+// )
+
+// // ------------------- Email Model ------------------- //
+
+// type Email struct {
+// 	gorm.Model
+// 	UUID        uuid.UUID    `json:"uuid" gorm:"primaryKey;unique;not null"`
+// 	CompanyUUID uuid.UUID    `json:"company_uuid" gorm:"index;not null" validate:"required,uuid"`
+// 	Name        string       `json:"name" validate:"required"`
+// 	Sender      string       `json:"sender" validate:"required,email"`
+// 	Recipient   string       `json:"receiver" validate:"required,email"`
+// 	Subject     string       `json:"subject" validate:"required"`
+// 	Status      Status       `json:"status" gorm:"type:enum('SENT', 'FAILED');not null" validate:"required,enum_status"`
+// 	Source      Source       `json:"source" gorm:"type:enum('TRIAL_CREATED', 'TRIAL_EXPIRED', 'SUBSCRIPTION_CREATED', 'SUBSCRIPTION_RENEWED', 'SUBSCRIPTION_CANCELLED', 'ACCOUNT_CREATION', 'RESET_PASSWORD', 'CHANGE_EMAIL', 'DELETE_ACCOUNT');not null" validate:"required,enum_source"`
+// 	Website     Website      `json:"website" gorm:"type:enum('IK', 'AK', 'MYE');not null" validate:"required,enum_website"`
+// 	Payload     string       `json:"payload" validate:"required,json"`
+// }
+
+// // BeforeCreate hook to set UUID automatically
+// func (e *Email) BeforeCreate(tx *gorm.DB) (err error) {
+// 	if e.UUID == uuid.Nil {
+// 		e.UUID = uuid.New()
+// 	}
+// 	return nil
+// }

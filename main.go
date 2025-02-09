@@ -24,7 +24,7 @@ func main() {
 	// Create a new Gin router instance
 	router := gin.Default()
 
-	router.GET("/health-check", func(c *gin.Context) {utils.Success(c, http.StatusOK, nil, "Service is up and running")})
+	router.GET("/health-check", func(c *gin.Context) {utils.SuccessResponse(c, http.StatusOK, nil, "Service is up and running")})
 	routes.EmailRoute(router) // Register email routes
 
 	// Define the HTTP server configuration

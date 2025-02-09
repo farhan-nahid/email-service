@@ -18,7 +18,7 @@ func BindAndValidate[T interface{}]() gin.HandlerFunc {
 		var input T
 		// Bind JSON from request body to struct
 		if err := c.ShouldBindJSON(&input); err != nil {	
-			utils.Error(c, http.StatusBadRequest, err)
+			utils.ErrorResponse(c, http.StatusBadRequest, err)
 			return
 		}
 
